@@ -13,7 +13,7 @@
 # - `from matplotlib import pyplot as plt`
 # - `import pandas as pd`
 
-# In[17]:
+# In[9]:
 
 from matplotlib import pyplot as plt
 import pandas as pd
@@ -29,14 +29,14 @@ get_ipython().magic('matplotlib inline')
 # Load the dataset and inspect it:
 # - Load `species_info.csv` into a DataFrame called `species`
 
-# In[4]:
+# In[10]:
 
 species = pd.read_csv('species_info.csv')
 
 
 # Inspect each DataFrame using `.head()`.
 
-# In[5]:
+# In[11]:
 
 species.head()
 
@@ -46,7 +46,7 @@ species.head()
 
 # How many different species are in the `species` DataFrame?
 
-# In[7]:
+# In[12]:
 
 species_count = species.scientific_name.nunique()
 species_count
@@ -54,7 +54,7 @@ species_count
 
 # What are the different values of `category` in `species`?
 
-# In[9]:
+# In[13]:
 
 species_type = species.category.unique()
 species_type
@@ -62,7 +62,7 @@ species_type
 
 # What are the different values of `conservation_status`?
 
-# In[10]:
+# In[14]:
 
 conservation_statuses = species.conservation_status.unique()
 conservation_statuses
@@ -79,7 +79,7 @@ conservation_statuses
 # 
 # We'd like to count up how many species meet each of these criteria.  Use `groupby` to count how many `scientific_name` meet each of these criteria.
 
-# In[12]:
+# In[15]:
 
 conservation_counts_fixed = species.groupby('conservation_status').scientific_name.nunique().reset_index()
 conservation_counts_fixed.head()
@@ -92,14 +92,14 @@ conservation_counts_fixed.head()
 # species.fillna('No Intervention', inplace=True)
 # ```
 
-# In[13]:
+# In[16]:
 
 species.fillna('No Intervention', inplace=True)
 
 
 # Great! Now run the same `groupby` as before to see how many species require `No Intervention`.
 
-# In[14]:
+# In[17]:
 
 conservation_counts_fixed = species.groupby('conservation_status').scientific_name.nunique().reset_index()
 conservation_counts_fixed.head()
@@ -114,7 +114,7 @@ conservation_counts_fixed.head()
 #     .sort_values(by='scientific_name')
 # ```
 
-# In[15]:
+# In[18]:
 
 protection_counts = species.groupby('conservation_status')    .scientific_name.count().reset_index()    .sort_values(by='scientific_name')
 
@@ -129,7 +129,7 @@ protection_counts = species.groupby('conservation_status')    .scientific_name.c
 # 6. Title the graph `Conservation Status by Species`
 # 7. Plot the grap using `plt.show()`
 
-# In[22]:
+# In[19]:
 
 plt.figure(figsize=(10,4))
 ax = plt.subplot()
@@ -148,12 +148,38 @@ plt.title('Conservation Status by Species')
 plt.show()
 
 
+# [ADDED CELLS]
+# 
+# For the sake of visual clarity, here's the base-10 log of the species counts. As we can see,the No Intervention category is about 3 orders of magnitude larger than In Recovery and Threatened, and no less than an order above the other two
+
+# In[37]:
+
+plt.figure(figsize=(10,4))
+ax = plt.subplot()
+
+import numpy as np
+new_counts = np.log10(counts)
+
+plt.bar(range(0,len(new_counts)),new_counts)
+
+x_tic_spots = range(0,len(new_counts))
+x_tic_spots = [x_tic_spots[i]+.4 for i in x_tic_spots]
+ax.set_xticks(x_tic_spots)
+ax.set_xticklabels(protection_counts.conservation_status)
+plt.ylabel('Log10 of Number of Species')
+plt.title('Conservation Status by Species')
+
+#print(new_counts)
+#print(np.log10(counts))
+plt.show()
+
+
 # # Step 4
 # Are certain types of species more likely to be endangered?
 
 # Let's create a new column in `species` called `is_protected`, which is `True` if `conservation_status` is not equal to `No Intervention`, and `False` otherwise.
 
-# In[25]:
+# In[39]:
 
 species['is_protected'] = species.conservation_status.apply(lambda i:True if i!='No Intervention' else False)
 species.head()
@@ -161,14 +187,14 @@ species.head()
 
 # Let's group by *both* `category` and `is_protected`.  Save your results to `category_counts`.
 
-# In[27]:
+# In[40]:
 
 category_counts = species.groupby(['category','is_protected']).scientific_name.nunique().reset_index()
 
 
 # Examine `category_counts` using `head()`.
 
-# In[28]:
+# In[41]:
 
 category_counts.head()
 
@@ -180,14 +206,14 @@ category_counts.head()
 # 
 # Save your pivoted data to `category_pivot`. Remember to `reset_index()` at the end.
 
-# In[29]:
+# In[42]:
 
 category_pivot = category_counts.pivot(columns='is_protected',index='category',values='scientific_name').reset_index()
 
 
 # Examine `category_pivot`.
 
-# In[30]:
+# In[43]:
 
 category_pivot
 
@@ -197,7 +223,7 @@ category_pivot
 # - Rename `False` to `not_protected`
 # - Rename `True` to `protected`
 
-# In[31]:
+# In[44]:
 
 category_pivot.rename(columns={False:'not_protected',True:'protected'},inplace=True)
 category_pivot
@@ -205,7 +231,7 @@ category_pivot
 
 # Let's create a new column of `category_pivot` called `percent_protected`, which is equal to `protected` (the number of species that are protected) divided by `protected` plus `not_protected` (the total number of species).
 
-# In[32]:
+# In[45]:
 
 percent = lambda row: 1.0*row.protected/(row.protected+row.not_protected)
 category_pivot['percent_protected'] = category_pivot.apply(percent,axis=1)
@@ -213,7 +239,7 @@ category_pivot['percent_protected'] = category_pivot.apply(percent,axis=1)
 
 # Examine `category_pivot`.
 
-# In[33]:
+# In[46]:
 
 category_pivot
 
@@ -231,7 +257,7 @@ category_pivot
 # 
 # Create a table called `contingency` and fill it in with the correct numbers
 
-# In[36]:
+# In[47]:
 
 contingency = [[30,146],[75,413]]
 
@@ -241,14 +267,14 @@ contingency = [[30,146],[75,413]]
 # from scipy.stats import chi2_contingency
 # ```
 
-# In[37]:
+# In[48]:
 
 from scipy.stats import chi2_contingency
 
 
 # Now run `chi2_contingency` with `contingency`.
 
-# In[38]:
+# In[49]:
 
 i,pval,i,i = chi2_contingency(contingency)
 pval
@@ -258,13 +284,56 @@ pval
 # 
 # Let's test another.  Is the difference between `Reptile` and `Mammal` significant?
 
-# In[39]:
+# In[50]:
 
 i,pval_reptile_mammal,i,i=chi2_contingency([[5,73],[30,146]])
 pval_reptile_mammal
 
 
 # Yes! It looks like there is a significant difference between `Reptile` and `Mammal`!
+
+# [ADDED CELLS]
+# 
+# How about the other species? Compared to the 'average' species, determined by that closest to the average percent protected, which are significantly better and worse off?
+# 
+# We'll start by finding that species closest to the average
+
+# In[112]:
+
+avg_protected_pct = category_pivot.percent_protected.mean()
+avg_protected_pct
+
+
+# While we could do something like finding the difference between this and each species' percent, finding the min value, finding the corresponding index, and printing the name of that cell, for a data set this small, we can confirm by inspection that the closest is Fish. 
+# 
+# From here, let's run chi squared tests against all other species
+
+# In[116]:
+
+chi_matrices = category_pivot[['not_protected','protected']]
+chi_matrices = chi_matrices.values
+
+names = category_pivot[['category']].values
+
+# Fish is the third row, so we'll perform analyses against these
+# Thus, let's save its values, and delete it from the chi_matrices array
+fish_index = np.argwhere(names=='Fish')[0][0]
+fish = chi_matrices[fish_index]
+
+# Now let's run the chi squared test, ignoring the Fish vs Fish test (entry three)
+chi_results = []
+for i in range(len(names)):
+    contingency = [chi_matrices[i],fish]
+    a,pval,a,a = chi2_contingency(contingency)
+    chi_results.append([pval,names[i][0]])
+    
+significant_lambda = lambda i:'Significant' if i<.05 else 'Not significant'
+chi_results = [[significant_lambda(chi_results[i][0]),chi_results[i][1]] for i in range(len(chi_results))]
+chi_results = np.delete(chi_results,fish_index,axis=0)
+print(chi_results)
+
+
+# Based on these results, the Plant categories are the only ones which are significantly less protected than the "average" class, Fish
 
 # # Step 5
 
